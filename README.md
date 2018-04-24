@@ -9,25 +9,25 @@ That sounds like an infrastructure as code solution, because Terraform is an inf
 
 ## Agenda - This will be Hands-on!
 
-1. Connect to and AWS instance we have provided details of for you.
+1. SSH into your workstation
 2. Editing the configuration file to create an ec2 instance
 3. Running Terraform
 4. Adding AWS tags to the instance
-5. Scaling infrastructure
+5. Scaling the infrastructure
 6. Using variables
 7. Scaling down the infrastructure
 8. Destroying the environment
 
 ---
 
-## 1. SSH into your instance
+## 1. SSH into your workstation
 
 * `ssh devops@your.IP`
 * You will be prompted to confirm that the key looks correct, type `y` then Enter
 * Then enter the password: `playground` and press Enter
 
 ---
-## 2. EC2 Instance Terraform configuration
+## 2. Editing the configuration file to create an ec2 instance
 
 The main.tf is the main configuration file that is to be used for the remainder of this playground.  
 
@@ -54,7 +54,7 @@ Save the file.
 
 
 
-## 3. Lets Create an instance
+## 3. Running Terraform
 
 ### Running terraform plan
 Now run `tf plan`
@@ -143,7 +143,7 @@ Under the existing "Identity" tag, add the "Name" tag, with your name as the val
 ```
  tag {
      Identity = ...
-     Name = "Atendee Name"
+     Name = "Mark"
  }
 ```
 
@@ -158,142 +158,112 @@ Any changes? What did you see happen?  If no changes then you are already writin
 
 ---
 
-## 5.Scaling Infrastructure
+## 5.Scaling the infrastructure
 
-What if you want to add more than one instance?  You can add the count variable to resolve this, see below:
+What if you want to add more than one instance?  You can use the count meta-parameter to do this.
+This parameter allows you to very simply state how many instances of a resource you want Terraform to create.
 
-```
-meta-parameter *count*
+In this exercise, we want to create 2 AWS instances.
 
-```
-
-Add the item count = 1 underneath resource so it will look like the following:
+Add the item `count = 2` at the top of the aws_instance stanza, so that it looks like this:
 
 ```
-
-resource "aws_instance" "test" {
-count = 1
-
+resource "aws_instance" "playground" {
+  count = 2
 ```
+
 ---
 
-### 6. Confusion between instances, how to identity?
+## 6. Using variables
 
-**Interpolation**
+### Interpolation syntax
 
 The interpolation syntax is powerful and allows you to reference variables, attributes of resources, call functions.
 
 You can perform simple math in interpolations, allowing you to write expressions such as ${count.index + 1}. And you can also use conditionals to determine a value based on some logic.
 
-This looks useful to our excersize to lets add the interpolation to the
+As you build more complex infrastructure, your terraform configuration will become longer and more complex. In order to avoid repetition, you can use variables. These variables also allow you to make your configuration re-usable by other teams/users, by using the same configuration and simply changing the variables.
 
-Now this is where your environment can become a little messy if you are creating multiple instances.  
-
-First let's create a variable, you can place it under the AWS Provider stanza.
+### Creating a variable
+Let's create a variable, you can place it under the AWS Provider stanza.
 
 ```
  variable "username" {        
-   default = "AtendeeID"
+   default = "Mark"
  }
 ```
 
 Now let's make use of this variable, by replacing the Name that you set for your instance.
 
 ```
-Name   = "${var.username} ${count.index}"
+Name   = "${var.username}"
+```
+Now run `terraform apply`.
+
+### Making use of the count index
+
+It can very easily become very confusing between instances as both instances have the same Name tag, which is used on the AWS Console as the Instance name. To resolve this we add a _counter_ to the Name tag.
 
 ```
-Now run tf plan to see the proposed changes going to be applied.
-
-
-This can very easily become very confusing between instances and the current naming convention shows the first instance as [0] but we need to identity them better as 0 is more used in binary.  To resolve this we add an additional item to the count.index.
-
-```
-${count.index+1}"
-
+Name   = "${var.username} ${count.index+1}"
 ```
 
-Run tf plan to see your proposed changes:
-
-Anyone experiencing any errors?
-
-If all is good then you can run terraform apply
-
-
-**Refresh the AWS console**
+Run `terraform apply` to see your changes come to life.
 
 ---
-### 6.1 Terraform show
+
+## 7. Understanding the state
 
 The terraform show command is used to provide human-readable output from a state or plan file. This can be used to inspect a plan to ensure that the planned operations are expected, or to inspect the current state as Terraform sees it.
 
-### Current state - used by terraform to know what it manages
+Run `terraform show` and look at the output of the command.
 
-Add a final item to the main.tf to display output IP for the new instances have been created.
+---
 
-### Add the output to the main.tf
+## 8. Terraform outputs
+
+At the end of a terraform run, you might want to output specific data.
+
+Add a final item to the main.tf file to display the public IP for the new instances that have been created.
 
 ```
 output "public_IP" {
-  value = "${aws_instance.test.*.public_ip}"
+  value = "${aws_instance.playground.*.public_ip}"
 }
+```
+
+Now run `terraform output` to show the outputs.
+
+This will fail the first time because it looks inside the state, not the config, for the outputs. To pull this through we need to refresh our state, using the `terrafrom refresh` command.
+
+This should now show the output of your terraform environments:
 
 ```
-### 6.2 run terraform output
-
-This will fail the first time because it looks inside the state, not the config, for the outputs. To pull this through we need to perform a Refresh
-
- ```
-tf refresh
-
-```
-This should now show the output of your terraform environments
-
-```
-e.g
-
 public_IP = [
-    54.72.161.232
+    54.72.161.232,
+    54.94.212.153
 ]
 ```
 
 ---
-### 7.  Scaling back the infrastructure
+## 7. Scaling down the infrastructure
 
-There are a couple of options here
+If you have created too many instances, you can scale down by changing the count number.
 
-1. Go back to 1 instance only
-2. Run tf destroy to remove all instances.
-
-```
-Edit the main.tf file instance count to 1
-
-count = 1 OR remove count item altogether
+Edit the main.tf file and change the instance count to 1
 
 ```
-
-* Whats going to happen?
-
-* run tf apply and confirm the output.
-
-* You Should now only be one instance runnning or none if you ran destroy.
-
-
-To test this run your previous command, this should show only 1 IP address.
-
+count = 1 // OR remove the count parameter altogether
 ```
-terraform output
 
-```
+Run `terraform apply` and confrm if you're happy with the plan.
+
+You Should now only be one instance runnning or none if you ran destroy.
+
+
 ---
-### 8. Final Step Destroying the Environment
+## 8. Destroying the Environment
 
-*** terraform destroy***
+When you are done with your environment, you can choose to destroy everything you created previously using the `terraform destroy` command.
 
 Terraform shows its execution plan and waits for approval before making any changes.
-
-
-```
-tf destroy
-
-```
