@@ -52,8 +52,7 @@ instance_type = "t2.micro"
 
 Save the file.
 
-
-
+---
 ## 3. Running Terraform
 
 ### Running terraform plan
