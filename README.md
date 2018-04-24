@@ -27,21 +27,37 @@ That sounds like an infrastructure as code solution, because Terraform is an inf
 * Then enter the password: `playground` and press Enter
 
 ---
-## 2. EC2 Instance Terraform configuration 
+## 2. EC2 Instance Terraform configuration
 
 The main.tf is the main configuration file that is to be used for the remainder of this playground.  
 
 Open the file and take a look around.
 
-Define an instance type.  Nothing larger than a t2.micro is required for today's Playground.
+The goal here is to create an EC2 instance. We have already pre-populated an aws_instance stanza with some values that are necessary for you to be able to run it, so please leave them in.
+
+### Adding an instance type
+The first change you need to do is defining an instance type. 
+Nothing larger than a t2.micro is required for today's Playground.
+
+Open the main.tf file with `vi main.tf` and do the following.
+1. Replace the ... with a name for your instance, e.g.
+```
+resource "aws_instance" "playground" {
+```
+2. Add an instance type to your instance, other items should  **NOT** be edited.
 
 ```
- instance_type = "t2.micro"
+instance_type = "t2.micro"
 ```
 
 Save the file.
 
-Now run tf plan
+
+
+## 3. Lets Create an instance
+
+### Running terraform plan
+Now run `tf plan`
 
 ```
 Plugin reinitialization required. Please run "terraform init".
@@ -61,18 +77,17 @@ This error occured because we had not run the tf init command.
 
 ```
 
----
-
 ### Terraform init
 
 The terraform init command is used to initialize a working directory containing Terraform configuration files. This is the first command that should be run after writing a new Terraform configuration or cloning an existing one from version control. It is safe to run this command multiple times.
 
-After tunning terraform init or tf init as the aliases have been included for you run terraform -help to see the list of variables available.
+After tunning terraform init as the aliases have been included for you run terraform -help to see the list of variables available.
 
-* terraform -help
+```
+$ terraform -help
 
 * Common commands:
-```
+
      apply              Builds or changes infrastructure
      console            Interactive console for Terraform interpolations
      destroy            Destroy Terraform-managed infrastructure
@@ -102,78 +117,48 @@ After tunning terraform init or tf init as the aliases have been included for yo
      state              Advanced state management
 
 ```
+Run `tf init` now.
 
-```
-tf init
 
-```
----
-
-### 2. Lets Create an instance
-
-Open the main.tf file with `vi main.tf` and do the following.
-1. Replace the ... with a name for your instance, e.g.
-```
-resource "aws_instance" "playground" {
-```
-2. Add an instance type to your instance, other items should  **NOT** be edited.
-
-```
-instance_type          = "t2.micro"
-```
-
----
-
-### 3.0 Terraform Plan
-Run terraform plan to see the changes that are going to be applied.
+### Terraform Plan
+Run `terraform plan` to see the changes that are going to be applied.
 ```
 Plan: 1 to add, 0 to change, 0 to destroy.
 ```
-### 3.1 View AWS console
 
-As you can see the instances are starting to be created but they have no name, not very useful so let look to how we can solve this.
+
+### Terraform Apply
+Now that you're happy with the plan, you can run `terraform apply`.
+This will run another plan, if you are happy withit you can then enter `yes` and press Enter.
+Terraform will then apply your change.
+
 
 ---
 
-### 4. Adding Tags
+## 4. Adding AWS tags to the instance
 
-We can add a tag in place without having to re-provision infrastructure, next step is to demonstrate this.
+We can add a tag in place without having to re-provision the infrastructure, the next step will demonstrate this.
 
-1. Exercise: Add the Name tag
-2. Edit the main.tf file and add the following item:
-3. Add under region
+Under the existing "Identity" tag, add the "Name" tag, with your name as the value:
 ```
-Add Under tags
-
  tag {
+     Identity = ...
      Name = "Atendee Name"
  }
-
 ```
-Run terraform plan to view the changes that are going to be applied and apply.
 
-```
-tf plan
+Run `terraform apply` and if you are happy with the plan, go ahead and run it.
 
-
-tf apply
-
-```
----
 
 ### Tidying the code
 
-In some cases you may come across come code that does not look very clean. Within Terraform there is a cmd that we can use to format the file.  View the main.tf file before and after we run the fmt cmd as outlined below:
+In some cases you may come across some code that isn't well formatted. Terraform has a command allowing you to format the file. View the main.tf file before and after we run the `terraform fmt` command.
 
-Run the command:
-```
-tf fmt main.tf
-```
 Any changes? What did you see happen?  If no changes then you are already writing efficient code.
 
 ---
 
-### 5.Scaling Infrastructure
+## 5.Scaling Infrastructure
 
 What if you want to add more than one instance?  You can add the count variable to resolve this, see below:
 
