@@ -56,7 +56,7 @@ Save the file.
 ## 3. Running Terraform
 
 ### Running terraform plan
-Now run `tf plan`
+Now run `terraform plan`
 
 ```
 Plugin reinitialization required. Please run "terraform init".
