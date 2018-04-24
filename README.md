@@ -195,7 +195,7 @@ Let's create a variable, you can place it under the AWS Provider stanza.
 Now let's make use of this variable, by replacing the Name that you set for your instance.
 
 ```
-Name   = "${var.username}"
+Name = "${var.username}"
 ```
 Now run `terraform apply`.
 
@@ -204,7 +204,7 @@ Now run `terraform apply`.
 It can very easily become very confusing between instances as both instances have the same Name tag, which is used on the AWS Console as the Instance name. To resolve this we add a _counter_ to the Name tag.
 
 ```
-Name   = "${var.username} ${count.index+1}"
+Name = "${var.username} ${count.index+1}"
 ```
 
 Run `terraform apply` to see your changes come to life.
