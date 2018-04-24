@@ -10,45 +10,35 @@ That sounds like an infrastructure as code solution, because Terraform is an inf
 ## Agenda - This will be Hands-on!
 
 1. Connect to and AWS instance we have provided details of for you.
-2. Edit the configuration file
-3. Running Terraform commands.
-4. Add Tags to the instance
+2. Editing the configuration file to create an ec2 instance
+3. Running Terraform
+4. Adding AWS tags to the instance
 5. Scaling infrastructure
-6. Defining variables
-7. Scaling the infrastructure
-8. Destroy Environment
+6. Using variables
+7. Scaling down the infrastructure
+8. Destroying the environment
 
 ---
 
-### 1. SSH into your instance
+## 1. SSH into your instance
 
-* ssh devops@your.IP
+* `ssh devops@your.IP`
 * You will be prompted to confirm that the key looks correct, type `y` then Enter
 * Then enter the password: `playground` and press Enter
 
 ---
-### Terraform configuration 
+## 2. EC2 Instance Terraform configuration 
 
 The main.tf is the main configuration file that is to be used for the remainder of this playground.  
 
 Open the file and take a look around.
 
-Before instances can be created you need to include some additional variables
+Define an instance type.  Nothing larger than a t2.micro is required for today's Playground.
 
 ```
-
- variable "username" {        
-   default = "AtendeeID"
-
-```
-
-Define and Instance type.  Nothing larger that a t2.micro is required for todays playground.
-
-```
-
  instance_type = "t2.micro"
-
 ```
+
 Save the file.
 
 Now run tf plan
@@ -121,23 +111,17 @@ tf init
 
 ### 2. Lets Create an instance
 
-* Add some additional items to the main.tf file.
-
-* Open the main.tf file with vi main.tf and add the following items:
-
+Open the main.tf file with `vi main.tf` and do the following.
+1. Replace the ... with a name for your instance, e.g.
 ```
-
-resource "aws_instance" "test" {
-  count = 1
-
+resource "aws_instance" "playground" {
 ```
-
-* Add an instance type under the vpc_security_group_ids item, other items should  **NOT** be edited.
+2. Add an instance type to your instance, other items should  **NOT** be edited.
 
 ```
 instance_type          = "t2.micro"
-
 ```
+
 ---
 
 ### 3.0 Terraform Plan
@@ -218,7 +202,17 @@ You can perform simple math in interpolations, allowing you to write expressions
 
 This looks useful to our excersize to lets add the interpolation to the
 
-Now this is where your environment can become a little messy if you are creating multiple instances.  We can simplly add another tag
+Now this is where your environment can become a little messy if you are creating multiple instances.  
+
+First let's create a variable, you can place it under the AWS Provider stanza.
+
+```
+ variable "username" {        
+   default = "AtendeeID"
+ }
+```
+
+Now let's make use of this variable, by replacing the Name that you set for your instance.
 
 ```
 Name   = "${var.username} ${count.index}"
